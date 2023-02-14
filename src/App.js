@@ -1,44 +1,55 @@
 import './App.css';
-import { useState, Suspense, useEffect } from 'react'
+import React, { useState, Suspense, useRef } from 'react'
+import { Routes, Route, BrowserRouter } from 'react-router-dom'
+import ArtistView from './components/ArtistView'
+import AlbumView from './components/AlbumView'
 import Gallery from './components/Gallery'
 import SearchBar from './components/SearchBar'
-import Spinner from './images/1_9EBHIOzhE1XfMYoKz1JcsQ.gif'
+import Spinner from './components/Spinner'
+import { DataContext } from './context/DataContext'
+import { SearchContext } from './context/SearchContext'
 import { createResource as fetchData } from './helper'
 
-function App() {
-  let [searchTerm, setSearchTerm] = useState('')
-  let [message, setMessage] = useState('Search for Music!')
+const App = () => {
+  let searchInput = useRef('')
   let [data, setData] = useState(null)
-
-  useEffect(() => {
-    if (searchTerm) {
-      document.title=`${searchTerm} Music`
-      console.log(fetchData(searchTerm))
-      setData(fetchData(searchTerm))
-  }
-  }, [searchTerm])
+  let message = 'Search for Music!'
 
   const handleSearch = (e, term) => {
     e.preventDefault()
-    setSearchTerm(term)
+    setData(fetchData(term, 'main'))
   }
 
   const renderGallery = () => {
-    if(data){
+    if(data) {
       return (
         <Suspense fallback={<Spinner />}>
-          <Gallery data={data} />
+          <Gallery />
         </Suspense>
       )
     }
   }
 
   return (
-    <div className="App">
-      <SearchBar handleSearch={handleSearch} />
-      {message}
-      {renderGallery()}
-    </div>
+		<div className="App">
+			{message}
+			<BrowserRouter>
+				<Routes>
+				<Route path={'/'} element={
+					<div>
+						<SearchContext.Provider value={{term: searchInput, handleSearch: handleSearch}}>
+							<SearchBar />
+						</SearchContext.Provider>
+						<DataContext.Provider value={data}>
+						{renderGallery()}
+						</DataContext.Provider>
+					</div>
+				} />
+				<Route path={'/album/:id'} element={<AlbumView />} />
+				<Route path={'/artist/:id'} element={<ArtistView />} />
+				</Routes>
+			</BrowserRouter>
+		</div>
   );
 }
 

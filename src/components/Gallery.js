@@ -3,11 +3,13 @@ import { DataContext } from '../context/DataContext'
 import GalleryItem from './GalleryItem'
 
 const Gallery = () => {
+    console.log('rendering Gallery')
     const data = useContext(DataContext)
+    const myData = data.result.read()
 
-    const display = data.map((item, index) => {
+    const display = myData.map((item, index) => {
         return (
-            <GalleryItem key={index} item={item} />
+            <GalleryItem item={item} key={index} />
         )
     })
 
